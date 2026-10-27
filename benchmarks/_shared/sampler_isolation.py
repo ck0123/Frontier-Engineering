@@ -135,6 +135,7 @@ DEFAULT_TIMEOUT_S = 1800.0
 # harness environment.
 ENV_ALLOWLIST = (
     "PATH",
+    "PYTHONDONTWRITEBYTECODE",
     "HOME",
     "LANG",
     "LC_ALL",

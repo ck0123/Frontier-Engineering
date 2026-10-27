@@ -1,4 +1,4 @@
-"""Install the pinned Linux x86-64 compiler and Wasmtime C API.
+"""Install the pinned Linux x86-64 or ARM64 compiler and Wasmtime C API.
 
 From the repository root:
     python benchmarks/_shared/malloc_wasm/setup.py --install
@@ -22,19 +22,24 @@ import urllib.parse
 import urllib.request
 
 
-WASI_DIRECTORY = "wasi-sdk-34.0-x86_64-linux"
-WASMTIME_DIRECTORY = "wasmtime-v48.0.2-x86_64-linux-c-api"
+_ARM64 = platform.machine().lower() in {"aarch64", "arm64"}
+_WASI_ARCH = "arm64" if _ARM64 else "x86_64"
+_WASMTIME_ARCH = "aarch64" if _ARM64 else "x86_64"
+WASI_DIRECTORY = f"wasi-sdk-34.0-{_WASI_ARCH}-linux"
+WASMTIME_DIRECTORY = f"wasmtime-v48.0.2-{_WASMTIME_ARCH}-linux-c-api"
 ASSETS = (
     (
         WASI_DIRECTORY,
         "https://github.com/WebAssembly/wasi-sdk/releases/download/"
-        "wasi-sdk-34/wasi-sdk-34.0-x86_64-linux.tar.gz",
+        f"wasi-sdk-34/{WASI_DIRECTORY}.tar.gz",
+        "f7e243dff54d60bcc576e94d6166b69f410f2500ae4a9ceef34315be10e77971" if _ARM64 else
         "b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4",
     ),
     (
         WASMTIME_DIRECTORY,
         "https://github.com/bytecodealliance/wasmtime/releases/download/"
-        "v48.0.2/wasmtime-v48.0.2-x86_64-linux-c-api.tar.xz",
+        f"v48.0.2/{WASMTIME_DIRECTORY}.tar.xz",
+        "af6d19b2bf6a3147b7550356f557dc5a5e538a70c099f4c435d12311e20e5c6c" if _ARM64 else
         "d9a2b5dfaf688035f288a7ae81a4b96c3acdd3e849262c2ab577b61908c3f9f9",
     ),
 )
@@ -178,8 +183,8 @@ def _extract(archive: Path, destination: Path, directory: str) -> None:
 def install(root: str | Path | None = None) -> Toolchain:
     """Explicitly download and install hash-verified release assets."""
     root = _root(root)
-    if platform.system() != "Linux" or platform.machine().lower() not in {"x86_64", "amd64"}:
-        raise RuntimeError("The pinned Malloc toolchain supports Linux x86-64")
+    if platform.system() != "Linux" or platform.machine().lower() not in {"x86_64", "amd64", "aarch64", "arm64"}:
+        raise RuntimeError("The pinned Malloc toolchain supports Linux x86-64 and ARM64")
     root.mkdir(parents=True, exist_ok=True)
     import fcntl
 
